@@ -1,0 +1,62 @@
+import 'package:flutter/material.dart';
+import '../config/app_routes.dart';
+import '../presentation/pages/auth/login_page.dart';
+import '../presentation/pages/auth/signup_page.dart';
+import '../presentation/pages/home/home_page.dart';
+import '../presentation/pages/meeting/meeting_list_page.dart';
+import '../presentation/pages/meeting/meeting_detail_page.dart';
+import '../presentation/pages/meeting/meeting_create_page.dart';
+import '../presentation/pages/meeting/meeting_edit_page.dart';
+import '../presentation/pages/my/my_meetings_page.dart';
+import '../presentation/pages/my/my_created_meetings_page.dart';
+import '../presentation/pages/my/profile_page.dart';
+import '../presentation/pages/admin/admin_dashboard.dart';
+import '../presentation/pages/admin/admin_users_page.dart';
+import '../presentation/pages/admin/admin_reports_page.dart';
+
+class RouteGenerator {
+  static Route<dynamic> generateRoute(RouteSettings settings) {
+    switch (settings.name) {
+      case AppRoutes.login:
+        return _page(const LoginPage());
+      case AppRoutes.signup:
+        return _page(const SignupPage());
+      case AppRoutes.home:
+        return _page(const HomePage());
+
+      case AppRoutes.meetingList:
+        return _page(const MeetingListPage());
+      case AppRoutes.meetingDetail:
+        return _page(const MeetingDetailPage());
+      case AppRoutes.meetingCreate:
+        return _page(const MeetingCreatePage());
+      case AppRoutes.meetingEdit:
+        return _page(const MeetingEditPage());
+
+      case AppRoutes.myMeetings:
+        return _page(const MyMeetingsPage());
+      case AppRoutes.myCreatedMeetings:
+        return _page(const MyCreatedMeetingsPage());
+      case AppRoutes.profile:
+        return _page(const ProfilePage());
+
+      case AppRoutes.adminDashboard:
+        return _page(const AdminDashboardPage());
+      case AppRoutes.adminUsers:
+        return _page(const AdminUsersPage());
+      case AppRoutes.adminReports:
+        return _page(const AdminReportsPage());
+
+      default:
+        return _page(
+          const Scaffold(
+            body: Center(child: Text('Route not found')),
+          ),
+        );
+    }
+  }
+
+  static MaterialPageRoute _page(Widget child) {
+    return MaterialPageRoute(builder: (_) => child);
+  }
+}
