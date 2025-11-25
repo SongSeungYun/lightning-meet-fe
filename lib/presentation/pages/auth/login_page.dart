@@ -1,13 +1,133 @@
 import 'package:flutter/material.dart';
+import '../../../config/app_colors.dart';
+import '../../../config/app_text_styles.dart';
+import '../../../config/constants.dart';
+import '../../../config/app_routes.dart';
+import '../../widgets/common/custom_button.dart';
+import '../../widgets/common/custom_text_field.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
   @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  // 나중에 상태관리 붙일 때 이 컨트롤러를 활용하면 됨
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  // 나중에 검증용 formKey
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  void _onLoginPressed() {
+    // TODO: 나중에 실제 로그인 로직 연동
+    // 일단은 홈으로 네비게이션만 테스트
+    Navigator.pushReplacementNamed(context, AppRoutes.home);
+  }
+
+  void _onGotoSignup() {
+    Navigator.pushNamed(context, AppRoutes.signup);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
+      backgroundColor: AppColors.background,
       body: Center(
-        child: Text('Login Page'),
+        child: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppConstants.pageHorizontalPadding,
+                vertical: 40,
+              ),
+              child: Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(
+                    AppConstants.cardBorderRadius,
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          '번개모임에 오신 것을 환영합니다',
+                          style: AppTextStyles.titleLarge,
+                          textAlign: TextAlign.left,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '로그인 후 근처의 번개모임을 빠르게 찾아보세요.',
+                          style: AppTextStyles.body,
+                        ),
+                        const SizedBox(height: 24),
+                        CustomTextField(
+                          label: '이메일',
+                          hintText: 'you@example.com',
+                          keyboardType: TextInputType.emailAddress,
+                          controller: _emailController,
+                        ),
+                        const SizedBox(height: 16),
+                        CustomTextField(
+                          label: '비밀번호',
+                          hintText: '비밀번호를 입력하세요',
+                          obscureText: true,
+                          controller: _passwordController,
+                        ),
+                        const SizedBox(height: 8),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () {
+                              // TODO: 비밀번호 찾기 페이지 만들면 연결
+                            },
+                            child: const Text('비밀번호를 잊으셨나요?'),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        CustomButton(
+                          label: '로그인',
+                          onPressed: _onLoginPressed,
+                          isPrimary: true,
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              '아직 계정이 없으신가요?',
+                              style: AppTextStyles.body,
+                            ),
+                            TextButton(
+                              onPressed: _onGotoSignup,
+                              child: const Text('회원가입'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
