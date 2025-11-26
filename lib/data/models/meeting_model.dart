@@ -5,11 +5,10 @@ class Meeting {
   final String region;
   final int maxParticipants;
   final int currentParticipants;
-  // Add other fields as needed from MeetingResponse.kt
-  // final int hostId;
-  // final DateTime eventAt;
-  // final DateTime createdAt;
-  // final DateTime updatedAt;
+  final int hostId;
+  final DateTime eventAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
   Meeting({
     required this.id,
@@ -18,7 +17,10 @@ class Meeting {
     required this.region,
     required this.maxParticipants,
     required this.currentParticipants,
-    // Add other fields to constructor
+    required this.hostId,
+    required this.eventAt,
+    required this.createdAt,
+    required this.updatedAt,
   });
 
   factory Meeting.fromJson(Map<String, dynamic> json) {
@@ -29,11 +31,10 @@ class Meeting {
       region: json['region'],
       maxParticipants: json['maxParticipants'],
       currentParticipants: json['currentParticipants'],
-      // Parse other fields
-      // hostId: json['hostId'],
-      // eventAt: DateTime.parse(json['eventAt']),
-      // createdAt: DateTime.parse(json['createdAt']),
-      // updatedAt: DateTime.parse(json['updatedAt']),
+      hostId: json['hostId'],
+      eventAt: DateTime.parse(json['eventAt']),
+      createdAt: DateTime.parse(json['createdAt']),
+      updatedAt: DateTime.parse(json['updatedAt']),
     );
   }
 }

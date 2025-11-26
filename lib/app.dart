@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'presentation/state/auth/auth_provider.dart';
+// import 'package:provider/provider.dart'; // Removed for testing
+// import 'presentation/state/auth/auth_provider.dart'; // Removed for testing
 import 'config/app_routes.dart';
 import 'routes/route_generator.dart';
 import 'config/app_colors.dart';
 import 'config/app_text_styles.dart';
+// import 'package:lightning_meet_fe/presentation/pages/auth/login_page.dart'; // This import is no longer needed here
 
 class LightningMeetApp extends StatelessWidget {
   const LightningMeetApp({super.key});
@@ -13,24 +14,24 @@ class LightningMeetApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData base = ThemeData.light();
 
-    return Consumer<AuthProvider>(
-      builder: (context, auth, child) {
-        if (auth.isLoading) {
-          // While checking for the token, show a loading screen
-          return const MaterialApp(
-            home: Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(),
-              ),
-            ),
-          );
-        }
+    // return Consumer<AuthProvider>( // Removed for testing
+    //   builder: (context, auth, child) {
+    //     if (auth.isLoading) {
+    //       // While checking for the token, show a loading screen
+    //       return const MaterialApp(
+    //         home: Scaffold(
+    //           body: Center(
+    //             child: CircularProgressIndicator(),
+    //           ),
+    //         ),
+    //       );
+    //     }
 
         return MaterialApp(
           title: 'Lightning Meet',
           debugShowCheckedModeBanner: false,
-          // Set initialRoute based on login state
-          initialRoute: auth.isLoggedIn ? AppRoutes.home : AppRoutes.login,
+          // Set initialRoute unconditionally to login for testing
+          initialRoute: AppRoutes.login,
           onGenerateRoute: RouteGenerator.generateRoute,
           theme: base.copyWith(
             scaffoldBackgroundColor: AppColors.background,
@@ -51,7 +52,7 @@ class LightningMeetApp extends StatelessWidget {
             ),
           ),
         );
-      },
-    );
+    //   },
+    // );
   }
 }

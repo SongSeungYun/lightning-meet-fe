@@ -4,7 +4,8 @@ import '../../../config/app_text_styles.dart';
 import '../../../config/constants.dart';
 
 class MeetingDetailPage extends StatelessWidget {
-  const MeetingDetailPage({super.key});
+  final int meetingId;
+  const MeetingDetailPage({super.key, required this.meetingId});
 
   @override
   Widget build(BuildContext context) {

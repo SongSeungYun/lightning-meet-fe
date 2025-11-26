@@ -11,6 +11,7 @@ import '../presentation/pages/meeting/meeting_edit_page.dart';
 import '../presentation/pages/my/my_meetings_page.dart';
 import '../presentation/pages/my/my_created_meetings_page.dart';
 import '../presentation/pages/my/profile_page.dart';
+import '../presentation/pages/my/edit_profile_page.dart'; // Add this import
 import '../presentation/pages/admin/admin_dashboard.dart';
 import '../presentation/pages/admin/admin_users_page.dart';
 import '../presentation/pages/admin/admin_reports_page.dart';

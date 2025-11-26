@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class AuthService {
-  final String _baseUrl = "http://10.0.2.2:8080/api/auth";
+  final String _baseUrl = "http://localhost:8080/api/auth";
   final _storage = const FlutterSecureStorage();
 
   Future<void> signup({ required String loginId, required String password, required String email, required String nickname }) async {

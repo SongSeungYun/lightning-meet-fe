@@ -91,8 +91,8 @@ class _HomePageState extends State<HomePage> {
                   ...meetings.map(
                     (m) => MeetingCard(
                       title: m.title,
-                      location: m.region, // Assuming region is location for now
-                      // date: m.eventAt, // Need to parse DateTime in model
+                      location: m.region,
+                      date: m.eventAt,
                       currentCount: m.currentParticipants,
                       maxCount: m.maxParticipants,
                       onTap: () {

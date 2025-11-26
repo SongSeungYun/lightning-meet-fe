@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../../models/user_model.dart';
+import '../models/user_model.dart';
 import 'auth_service.dart';
 
 class UserService {
-  final String _baseUrl = "http://10.0.2.2:8080/api";
+  final String _baseUrl = "http://localhost:8080/api";
   final AuthService _authService = AuthService();
 
   Future<User> getMe() async {

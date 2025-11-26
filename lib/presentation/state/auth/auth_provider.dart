@@ -19,7 +19,7 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> login(String loginId, String password) async {
+  Future<void> login({required String loginId, required String password}) async {
     await _authService.login(loginId: loginId, password: password);
     _isLoggedIn = true;
     notifyListeners();
