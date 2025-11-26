@@ -3,6 +3,7 @@ import '../../../config/app_colors.dart';
 import '../../../config/app_text_styles.dart';
 import '../../../config/constants.dart';
 import '../../../config/app_routes.dart';
+import '../../../data/services/auth_service.dart';
 import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/custom_text_field.dart';
 
@@ -22,6 +23,8 @@ class _SignupPageState extends State<SignupPage> {
   final TextEditingController _passwordConfirmController =
       TextEditingController();
 
+  final AuthService _authService = AuthService();
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -31,10 +34,38 @@ class _SignupPageState extends State<SignupPage> {
     super.dispose();
   }
 
-  void _onSignupPressed() {
-    // TODO: 나중에 실제 회원가입 로직 추가
-    // 일단은 회원가입 후 로그인 페이지로 이동하는 정도만
-    Navigator.pushReplacementNamed(context, AppRoutes.login);
+  void _onSignupPressed() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+    if (_passwordController.text != _passwordConfirmController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('비밀번호가 일치하지 않습니다.')),
+      );
+      return;
+    }
+
+    try {
+      await _authService.signup(
+        loginId: _emailController.text,
+        password: _passwordController.text,
+        email: _emailController.text,
+        nickname: _nameController.text,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('회원가입 성공! 로그인해주세요.')),
+        );
+        Navigator.pushReplacementNamed(context, AppRoutes.login);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    }
   }
 
   void _onGotoLogin() {

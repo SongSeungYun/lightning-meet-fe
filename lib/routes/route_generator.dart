@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../config/app_routes.dart';
 import '../presentation/pages/auth/login_page.dart';
 import '../presentation/pages/auth/signup_page.dart';
@@ -13,6 +14,8 @@ import '../presentation/pages/my/profile_page.dart';
 import '../presentation/pages/admin/admin_dashboard.dart';
 import '../presentation/pages/admin/admin_users_page.dart';
 import '../presentation/pages/admin/admin_reports_page.dart';
+import '../presentation/state/meeting/meeting_provider.dart';
+import '../presentation/state/profile/profile_provider.dart'; // Add this import
 
 class RouteGenerator {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -22,12 +25,22 @@ class RouteGenerator {
       case AppRoutes.signup:
         return _page(const SignupPage());
       case AppRoutes.home:
-        return _page(const HomePage());
+        return _page(
+          ChangeNotifierProvider(
+            create: (context) => MeetingProvider(),
+            child: const HomePage(),
+          ),
+        );
 
       case AppRoutes.meetingList:
         return _page(const MeetingListPage());
       case AppRoutes.meetingDetail:
-        return _page(const MeetingDetailPage());
+        // Pass arguments if needed
+        final args = settings.arguments;
+        if (args is int) {
+          return _page(MeetingDetailPage(meetingId: args));
+        }
+        return _page(const Text('Error: Invalid meeting ID')); // Handle error
       case AppRoutes.meetingCreate:
         return _page(const MeetingCreatePage());
       case AppRoutes.meetingEdit:
@@ -38,7 +51,14 @@ class RouteGenerator {
       case AppRoutes.myCreatedMeetings:
         return _page(const MyCreatedMeetingsPage());
       case AppRoutes.profile:
-        return _page(const ProfilePage());
+        return _page(
+          ChangeNotifierProvider(
+            create: (context) => ProfileProvider(),
+            child: const ProfilePage(),
+          ),
+        );
+      case AppRoutes.editProfile:
+        return _page(const EditProfilePage());
 
       case AppRoutes.adminDashboard:
         return _page(const AdminDashboardPage());

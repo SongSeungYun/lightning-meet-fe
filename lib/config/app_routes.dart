@@ -12,6 +12,7 @@ class AppRoutes {
   static const String myMeetings = '/my/meetings';
   static const String myCreatedMeetings = '/my/created';
   static const String profile = '/my/profile';
+  static const String editProfile = '/my/profile/edit';
 
   static const String adminDashboard = '/admin';
   static const String adminUsers = '/admin/users';

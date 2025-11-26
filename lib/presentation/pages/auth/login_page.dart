@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../config/app_colors.dart';
 import '../../../config/app_text_styles.dart';
 import '../../../config/constants.dart';
 import '../../../config/app_routes.dart';
+import '../../state/auth/auth_provider.dart';
 import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/custom_text_field.dart';
 
@@ -14,11 +16,8 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  // 나중에 상태관리 붙일 때 이 컨트롤러를 활용하면 됨
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-
-  // 나중에 검증용 formKey
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
@@ -28,10 +27,23 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void _onLoginPressed() {
-    // TODO: 나중에 실제 로그인 로직 연동
-    // 일단은 홈으로 네비게이션만 테스트
-    Navigator.pushReplacementNamed(context, AppRoutes.home);
+  void _onLoginPressed() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+    try {
+      await context.read<AuthProvider>().login(
+            loginId: _emailController.text,
+            password: _passwordController.text,
+          );
+      // Navigation is handled by the Consumer in app.dart
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    }
   }
 
   void _onGotoSignup() {
