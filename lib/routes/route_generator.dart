@@ -26,12 +26,7 @@ class RouteGenerator {
       case AppRoutes.signup:
         return _page(const SignupPage());
       case AppRoutes.home:
-        return _page(
-          ChangeNotifierProvider(
-            create: (context) => MeetingProvider(),
-            child: const HomePage(),
-          ),
-        );
+        return _page(const HomePage());
 
       case AppRoutes.meetingList:
         return _page(const MeetingListPage());

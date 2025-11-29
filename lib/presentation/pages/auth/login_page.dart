@@ -33,8 +33,8 @@ class _LoginPageState extends State<LoginPage> {
     }
     try {
       await context.read<AuthProvider>().login(
-            loginId: _emailController.text,
-            password: _passwordController.text,
+            _emailController.text,
+            _passwordController.text,
           );
       // Navigation is handled by the Consumer in app.dart
     } catch (e) {
