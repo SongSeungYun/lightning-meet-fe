@@ -6,6 +6,7 @@ import '../../../config/constants.dart';
 import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/custom_text_field.dart';
 import '../../state/profile/profile_provider.dart';
+import '../../widgets/common/main_layout.dart'; // Import MainLayout
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -65,8 +66,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("프로필 수정")),
+    return MainLayout( // Use MainLayout
       body: Center(
         child: SingleChildScrollView(
           child: ConstrainedBox(

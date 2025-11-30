@@ -5,6 +5,7 @@ import '../../../config/app_text_styles.dart';
 import '../../../config/constants.dart';
 import '../../../config/app_routes.dart';
 import '../../state/profile/profile_provider.dart';
+import '../../widgets/common/main_layout.dart'; // Import MainLayout
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -24,8 +25,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("내 프로필")),
+    return MainLayout( // Use MainLayout
       body: Consumer<ProfileProvider>(
         builder: (context, profileProvider, child) {
           if (profileProvider.isLoading) {
@@ -54,7 +54,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         backgroundColor: AppColors.primaryLight,
                         child: Icon(Icons.person, size: 40),
                       ),
-                      const SizedBox(width: 16), // Changed from height to width
+                      const SizedBox(width: 16),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -91,7 +91,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
                   ElevatedButton(
                     onPressed: () {
-                      // Navigate to EditProfilePage
                       Navigator.pushNamed(context, AppRoutes.editProfile);
                     },
                     style: ElevatedButton.styleFrom(
