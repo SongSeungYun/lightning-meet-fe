@@ -5,7 +5,8 @@ import '../../../config/constants.dart';
 import '../../widgets/common/main_layout.dart';
 import '../../../data/services/meeting_service.dart';
 import 'package:provider/provider.dart';
-import '../../state/meeting/meeting_provider.dart'; // To refresh meeting list
+import '../../state/meeting/meeting_provider.dart';
+import '../../../config/app_routes.dart'; // Add this import
 
 class MeetingCreatePage extends StatefulWidget {
   const MeetingCreatePage({super.key});
@@ -19,18 +20,22 @@ class _MeetingCreatePageState extends State<MeetingCreatePage> {
 
   final _titleController = TextEditingController();
   final _descController = TextEditingController();
-  final _locationController = TextEditingController();
+  final _regionController = TextEditingController(); // Renamed
+  final _locationController = TextEditingController(); // New
+  final _keywordsController = TextEditingController(); // New
   final _maxCountController = TextEditingController();
 
-  DateTime? _selectedDateTime; // Use _selectedDateTime for clarity
+  DateTime? _selectedDateTime;
 
-  final MeetingService _meetingService = MeetingService(); // Instantiate service
+  final MeetingService _meetingService = MeetingService();
 
   @override
   void dispose() {
     _titleController.dispose();
     _descController.dispose();
+    _regionController.dispose();
     _locationController.dispose();
+    _keywordsController.dispose();
     _maxCountController.dispose();
     super.dispose();
   }
@@ -41,7 +46,7 @@ class _MeetingCreatePageState extends State<MeetingCreatePage> {
       context: context,
       firstDate: now,
       lastDate: now.add(const Duration(days: 365)),
-      initialDate: now,
+      initialDate: _selectedDateTime ?? now,
     );
 
     if (date != null) {
@@ -76,18 +81,19 @@ class _MeetingCreatePageState extends State<MeetingCreatePage> {
       await _meetingService.createMeeting(
         title: _titleController.text,
         content: _descController.text,
-        region: _locationController.text, // Assuming location is region
+        region: _regionController.text,
+        location: _locationController.text,
+        keywords: _keywordsController.text,
         maxParticipants: int.parse(_maxCountController.text),
-        eventAt: _selectedDateTime!,
+        time: _selectedDateTime!,
       );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('모임이 성공적으로 생성되었습니다.')),
         );
-        // Optionally refresh the meeting list on the home page
         Provider.of<MeetingProvider>(context, listen: false).fetchMeetings();
-        Navigator.pop(context); // Go back to previous page
+        Navigator.pushReplacementNamed(context, AppRoutes.myMeetings);
       }
     } catch (e) {
       if (mounted) {
@@ -98,7 +104,8 @@ class _MeetingCreatePageState extends State<MeetingCreatePage> {
     }
   }
 
-  InputDecoration _input() => InputDecoration(
+  InputDecoration _input({String? hintText}) => InputDecoration(
+        hintText: hintText,
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(
@@ -130,38 +137,51 @@ class _MeetingCreatePageState extends State<MeetingCreatePage> {
                 Text("새 모임 만들기", style: AppTextStyles.titleLarge),
                 const SizedBox(height: 24),
 
-                // 제목
                 Text("제목", style: AppTextStyles.titleMedium),
                 const SizedBox(height: 6),
                 TextFormField(
                   controller: _titleController,
-                  decoration: _input(),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return '제목을 입력해주세요.';
-                    }
-                    return null;
-                  },
+                  decoration: _input(hintText: "모임의 제목을 알려주세요."),
+                  validator: (value) => (value?.isEmpty ?? true) ? '제목을 입력해주세요.' : null,
                 ),
                 const SizedBox(height: 20),
 
-                // 설명
                 Text("설명", style: AppTextStyles.titleMedium),
                 const SizedBox(height: 6),
                 TextFormField(
                   controller: _descController,
-                  decoration: _input(),
+                  decoration: _input(hintText: "모임에 대해 자세하게 설명해주세요."),
                   maxLines: 4,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return '설명을 입력해주세요.';
-                    }
-                    return null;
-                  },
+                  validator: (value) => (value?.isEmpty ?? true) ? '설명을 입력해주세요.' : null,
+                ),
+                const SizedBox(height: 20),
+                
+                Text("지역", style: AppTextStyles.titleMedium),
+                const SizedBox(height: 6),
+                TextFormField(
+                  controller: _regionController,
+                  decoration: _input(hintText: "예: 서울 강남구"),
+                  validator: (value) => (value?.isEmpty ?? true) ? '지역을 입력해주세요.' : null,
                 ),
                 const SizedBox(height: 20),
 
-                // 날짜/시간
+                Text("상세 장소", style: AppTextStyles.titleMedium),
+                const SizedBox(height: 6),
+                TextFormField(
+                  controller: _locationController,
+                  decoration: _input(hintText: "예: 강남역 10번 출구"),
+                  validator: (value) => (value?.isEmpty ?? true) ? '상세 장소를 입력해주세요.' : null,
+                ),
+                const SizedBox(height: 20),
+                
+                Text("검색 키워드", style: AppTextStyles.titleMedium),
+                const SizedBox(height: 6),
+                TextFormField(
+                  controller: _keywordsController,
+                  decoration: _input(hintText: "쉼표(,)로 구분하여 입력해주세요."),
+                ),
+                const SizedBox(height: 20),
+
                 Text("날짜/시간", style: AppTextStyles.titleMedium),
                 const SizedBox(height: 6),
                 InkWell(
@@ -178,42 +198,21 @@ class _MeetingCreatePageState extends State<MeetingCreatePage> {
                   ),
                 ),
                 const SizedBox(height: 20),
-
-                // 위치
-                Text("위치", style: AppTextStyles.titleMedium),
-                const SizedBox(height: 6),
-                TextFormField(
-                  controller: _locationController,
-                  decoration: _input(),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return '위치를 입력해주세요.';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-
-                // 정원
+                
                 Text("정원", style: AppTextStyles.titleMedium),
                 const SizedBox(height: 6),
                 TextFormField(
                   controller: _maxCountController,
-                  decoration: _input(),
+                  decoration: _input(hintText: "최대 참여 인원을 입력하세요."),
                   keyboardType: TextInputType.number,
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return '정원을 입력해주세요.';
-                    }
-                    if (int.tryParse(value) == null || int.parse(value) <= 0) {
-                      return '유효한 숫자를 입력해주세요.';
-                    }
+                    if (value == null || value.isEmpty) return '정원을 입력해주세요.';
+                    if (int.tryParse(value) == null || int.parse(value) <= 0) return '유효한 숫자를 입력해주세요.';
                     return null;
                   },
                 ),
                 const SizedBox(height: 24),
 
-                // create 버튼
                 ElevatedButton(
                   onPressed: _onCreatePressed,
                   style: ElevatedButton.styleFrom(

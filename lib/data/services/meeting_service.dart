@@ -5,7 +5,7 @@ import 'auth_service.dart';
 import 'user_service.dart';
 
 class MeetingService {
-  final String _baseUrl = "http://localhost:8080/api"; // Changed for script compatibility
+  final String _baseUrl = "http://localhost:8080/api";
   final AuthService _authService = AuthService();
   final UserService _userService = UserService();
 
@@ -50,8 +50,10 @@ class MeetingService {
     required String title,
     required String content,
     required String region,
+    required String location,
+    String? keywords,
     required int maxParticipants,
-    required DateTime eventAt,
+    required DateTime time,
   }) async {
     final token = await _authService.getToken();
     if (token == null) {
@@ -68,8 +70,10 @@ class MeetingService {
         'title': title,
         'content': content,
         'region': region,
+        'location': location,
+        'keywords': keywords,
         'maxParticipants': maxParticipants,
-        'eventAt': eventAt.toIso8601String(),
+        'time': time.toIso8601String(),
       }),
     );
 
@@ -83,8 +87,10 @@ class MeetingService {
     String? title,
     String? content,
     String? region,
+    String? location,
+    String? keywords,
     int? maxParticipants,
-    DateTime? eventAt,
+    DateTime? time,
   }) async {
     final token = await _authService.getToken();
     if (token == null) {
@@ -95,8 +101,10 @@ class MeetingService {
     if (title != null) updateData['title'] = title;
     if (content != null) updateData['content'] = content;
     if (region != null) updateData['region'] = region;
+    if (location != null) updateData['location'] = location;
+    if (keywords != null) updateData['keywords'] = keywords;
     if (maxParticipants != null) updateData['maxParticipants'] = maxParticipants;
-    if (eventAt != null) updateData['eventAt'] = eventAt.toIso8601String();
+    if (time != null) updateData['time'] = time.toIso8601String();
 
     final response = await http.put(
       Uri.parse('$_baseUrl/meetings/$meetingId'),
@@ -160,11 +168,25 @@ class MeetingService {
   }
 
   Future<List<Meeting>> getMyParticipatingMeetings() async {
-    // TODO: 백엔드에 현재 로그인한 사용자가 참여하는 모임 목록을 가져오는 API가 필요합니다.
-    // 현재는 Meeting 모델에 참여자 목록이 없어 프론트엔드에서 필터링이 어렵습니다.
-    // 임시로 모든 모임을 반환하거나, 특정 참가자 ID로 필터링하는 로직이 필요합니다.
-    // 백엔드 API가 구현되면 해당 API를 호출하도록 수정해야 합니다.
-    print("TODO: getMyParticipatingMeetings - Backend API needed for filtering by participant.");
-    return await getMeetings(); // Placeholder: returns all meetings
+    final token = await _authService.getToken();
+    if (token == null) {
+      throw Exception('Authentication required to get participating meetings.');
+    }
+
+    final response = await http.get(
+      Uri.parse('$_baseUrl/meetings/my-participating'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final body = json.decode(utf8.decode(response.bodyBytes));
+      final List<dynamic> data = body['data'];
+      return data.map((json) => Meeting.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load participating meetings');
+    }
   }
 }

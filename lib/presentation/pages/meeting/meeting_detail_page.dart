@@ -111,7 +111,7 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
                       const Icon(Icons.calendar_month, color: AppColors.primary),
                       const SizedBox(width: 8),
                       Text(
-                        "${meeting.eventAt.month}월 ${meeting.eventAt.day}일 · ${meeting.eventAt.hour}:${meeting.eventAt.minute}",
+                        "${meeting.time.month}월 ${meeting.time.day}일 · ${meeting.time.hour}:${meeting.time.minute.toString().padLeft(2, '0')}",
                         style: AppTextStyles.body,
                       ),
                     ],
@@ -122,6 +122,17 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
                   Row(
                     children: [
                       const Icon(Icons.place, color: AppColors.primary),
+                      const SizedBox(width: 8),
+                      Text(meeting.location, style: AppTextStyles.body),
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // 지역
+                  Row(
+                    children: [
+                      const Icon(Icons.map_outlined, color: AppColors.primary),
                       const SizedBox(width: 8),
                       Text(meeting.region, style: AppTextStyles.body),
                     ],

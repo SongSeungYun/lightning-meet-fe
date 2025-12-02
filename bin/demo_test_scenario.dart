@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:lightning_meet_fe/data/models/meeting_model.dart';
-import 'package:collection/collection.dart'; // Add this import
+import 'package:collection/collection.dart';
 
 // 이 스크립트는 Flutter 플러그인(secure_storage)에 대한 의존성을 제거하고,
 // 순수 Dart 환경에서 실행될 수 있도록 자체적으로 http 통신을 수행합니다.
@@ -33,8 +33,8 @@ Future<void> main() async {
       final loginId = '${interestEn}_user$i';
       final nickname = '${interestKo}마니아$i';
       final region = i.isOdd ? '서울 강서구' : '서울 강남구';
-      await _signup(loginId, '1234', '$loginId@gmail.com', nickname);
-      print('✅ [${nickname}] 사용자 생성 성공. (지역: ${region})');
+      await _signup(loginId, '1234', '$loginId@gmail.com', nickname, region, interestKo); // Pass region and interestKo
+      print('✅ [${nickname}] 사용자 생성 성공. (지역: ${region}, 관심사: ${interestKo})');
       await Future.delayed(const Duration(milliseconds: 50));
     }
 
@@ -47,13 +47,15 @@ Future<void> main() async {
     _inMemoryToken = await _login(creator1Id, '1234');
     if (_inMemoryToken != null) {
       gangseoMeeting = await _createMeeting(
-          title: '[${interestKo}] 함께 즐겨요! (${creator1Nickname} 주최)',
-          content: '${interestKo} 좋아하시는 분들 모여서 같이 즐겁게 활동해요!',
-          region: '서울 강서구',
-          maxParticipants: userCount ~/ 2,
-          eventAt: DateTime.now().add(const Duration(days: 7)),
+        title: '[${interestKo}] 함께 즐겨요! (${creator1Nickname} 주최)',
+        content: '${interestKo} 좋아하시는 분들 모여서 같이 즐겁게 활동해요!',
+        region: '서울 강서구',
+        location: '방화근린공원',
+        keywords: '$interestKo,초보,함께',
+        maxParticipants: userCount ~/ 2,
+        time: DateTime.now().add(const Duration(days: 7)),
       );
-      if(gangseoMeeting != null) {
+      if (gangseoMeeting != null) {
         print('✅ [${creator1Nickname}]가 [서울 강서구]에 모임 생성 성공.');
       }
     }
@@ -64,23 +66,22 @@ Future<void> main() async {
     _inMemoryToken = await _login(creator2Id, '1234');
     if (_inMemoryToken != null) {
       gangnamMeeting = await _createMeeting(
-          title: '[${interestKo}] 초보자 환영! (${creator2Nickname} 주최)',
-          content: '부담없이 오셔서 같이 즐겨요! 매너는 필수!',
-          region: '서울 강남구',
-          maxParticipants: userCount ~/ 2,
-          eventAt: DateTime.now().add(const Duration(days: 5)),
+        title: '[${interestKo}] 초보자 환영! (${creator2Nickname} 주최)',
+        content: '부담없이 오셔서 같이 즐겨요! 매너는 필수!',
+        region: '서울 강남구',
+        location: '강남역 10번 출구',
+        keywords: '$interestKo,초보환영,매너',
+        maxParticipants: userCount ~/ 2,
+        time: DateTime.now().add(const Duration(days: 5)),
       );
-      if(gangnamMeeting != null) {
+      if (gangnamMeeting != null) {
         print('✅ [${creator2Nickname}]가 [서울 강남구]에 모임 생성 성공.');
       }
     }
     await Future.delayed(const Duration(milliseconds: 50));
 
-
     print('\n----- [${interestKo}] 관심사 모임 참여 시작 -----');
-    // final allMeetings = await _getMeetings(); // No longer needed
-    
-    for (int i = 3; i < userCount - 1; i++) { // Loop up to userCount - 2
+    for (int i = 3; i < userCount - 1; i++) {
       final participantLoginId = '${interestEn}_user$i';
       final participantNickname = '${interestKo}마니아$i';
       final Meeting? targetMeeting = i.isOdd ? gangseoMeeting : gangnamMeeting;
@@ -105,12 +106,19 @@ Future<void> main() async {
 
 // Helper functions to make direct API calls
 
-Future<void> _signup(String loginId, String password, String email, String nickname) async {
+Future<void> _signup(String loginId, String password, String email, String nickname, String? region, String? interests) async {
   try {
     final response = await http.post(
       Uri.parse('$_baseUrl/auth/signup'),
       headers: {'Content-Type': 'application/json; charset=UTF-8'},
-      body: json.encode({'loginId': loginId, 'password': password, 'email': email, 'nickname': nickname}),
+      body: json.encode({
+        'loginId': loginId,
+        'password': password,
+        'email': email,
+        'nickname': nickname,
+        'region': region,
+        'interests': interests,
+      }),
     );
      if (response.statusCode != 200 && response.statusCode != 201) {
       print('❌ _signup 실패: ${response.statusCode}, ${response.body}');
@@ -143,8 +151,10 @@ Future<Meeting?> _createMeeting({
   required String title,
   required String content,
   required String region,
+  required String location,
+  String? keywords,
   required int maxParticipants,
-  required DateTime eventAt,
+  required DateTime time,
 }) async {
   if (_inMemoryToken == null) {
     print('❌ _createMeeting 실패: Not logged in.');
@@ -158,8 +168,10 @@ Future<Meeting?> _createMeeting({
         'title': title,
         'content': content,
         'region': region,
+        'location': location,
+        'keywords': keywords,
         'maxParticipants': maxParticipants,
-        'eventAt': eventAt.toIso8601String(),
+        'time': time.toIso8601String(),
       }),
     );
     if (response.statusCode == 200) {

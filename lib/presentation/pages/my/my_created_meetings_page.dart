@@ -53,8 +53,8 @@ class _MyCreatedMeetingsPageState extends State<MyCreatedMeetingsPage> {
                   ...meetings.map(
                     (m) => MeetingCard(
                       title: m.title,
-                      location: m.region,
-                      date: m.eventAt,
+                      location: m.location,
+                      date: m.time,
                       currentCount: m.currentParticipants,
                       maxCount: m.maxParticipants,
                       onTap: () {

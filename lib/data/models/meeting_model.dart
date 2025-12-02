@@ -3,10 +3,12 @@ class Meeting {
   final String title;
   final String content;
   final String region;
+  final String location;
+  final String? keywords;
   final int maxParticipants;
   final int currentParticipants;
   final int hostId;
-  final DateTime eventAt;
+  final DateTime time;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -15,10 +17,12 @@ class Meeting {
     required this.title,
     required this.content,
     required this.region,
+    required this.location,
+    this.keywords,
     required this.maxParticipants,
     required this.currentParticipants,
     required this.hostId,
-    required this.eventAt,
+    required this.time,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -29,10 +33,12 @@ class Meeting {
       title: json['title'],
       content: json['content'],
       region: json['region'],
+      location: json['location'],
+      keywords: json['keywords'],
       maxParticipants: json['maxParticipants'],
       currentParticipants: json['currentParticipants'],
       hostId: json['hostId'],
-      eventAt: DateTime.parse(json['eventAt']),
+      time: DateTime.parse(json['time']),
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt: DateTime.parse(json['updatedAt']),
     );
