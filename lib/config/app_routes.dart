@@ -3,6 +3,7 @@ class AppRoutes {
   static const String signup = '/signup';
 
   static const String home = '/home';
+  static const String notifications = '/notifications';
 
   static const String meetingList = '/meetings';
   static const String meetingDetail = '/meetings/detail';

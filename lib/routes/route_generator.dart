@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../config/app_routes.dart';
 import '../presentation/pages/auth/login_page.dart';
 import '../presentation/pages/auth/signup_page.dart';
@@ -14,6 +15,12 @@ import '../presentation/pages/my/edit_profile_page.dart';
 import '../presentation/pages/admin/admin_dashboard.dart';
 import '../presentation/pages/admin/admin_users_page.dart';
 import '../presentation/pages/admin/admin_reports_page.dart';
+import '../presentation/state/meeting/meeting_provider.dart';
+import '../presentation/state/profile/profile_provider.dart';
+import '../presentation/state/meeting/meeting_detail_provider.dart';
+import '../presentation/state/my/my_created_meetings_provider.dart';
+import '../presentation/state/my/my_participating_meetings_provider.dart';
+import '../presentation/pages/notification/notification_page.dart'; // Add this import
 
 class RouteGenerator {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -23,14 +30,28 @@ class RouteGenerator {
       case AppRoutes.signup:
         return _page(const SignupPage());
       case AppRoutes.home:
-        return _page(const HomePage());
+        return _page(
+          MultiProvider(
+            providers: [
+              ChangeNotifierProvider(create: (context) => MeetingProvider()),
+              ChangeNotifierProvider(create: (context) => ProfileProvider()),
+              ChangeNotifierProvider(create: (context) => MyParticipatingMeetingsProvider()), // Added
+            ],
+            child: const HomePage(),
+          ),
+        );
 
       case AppRoutes.meetingList:
         return _page(const MeetingListPage());
       case AppRoutes.meetingDetail:
         final args = settings.arguments;
         if (args is int) {
-          return _page(MeetingDetailPage(meetingId: args));
+          return _page(
+            ChangeNotifierProvider(
+              create: (context) => MeetingDetailProvider(),
+              child: MeetingDetailPage(meetingId: args),
+            ),
+          );
         }
         return _page(const Text('Error: Invalid meeting ID'));
       case AppRoutes.meetingCreate:
@@ -42,13 +63,34 @@ class RouteGenerator {
         }
         return _page(const Text('Error: Invalid meeting ID'));
       case AppRoutes.myMeetings:
-        return _page(const MyMeetingsPage());
+        return _page(
+          MultiProvider(
+            providers: [
+              ChangeNotifierProvider(create: (context) => MyParticipatingMeetingsProvider()),
+              ChangeNotifierProvider(create: (context) => MyCreatedMeetingsProvider()),
+            ],
+            child: const MyMeetingsPage(),
+          ),
+        );
       case AppRoutes.myCreatedMeetings:
-        return _page(const MyCreatedMeetingsPage());
+        return _page(
+          ChangeNotifierProvider(
+            create: (context) => MyCreatedMeetingsProvider(),
+            child: const MyCreatedMeetingsPage(),
+          ),
+        );
       case AppRoutes.profile:
-        return _page(const ProfilePage());
+        return _page(
+          ChangeNotifierProvider(
+            create: (context) => ProfileProvider(),
+            child: const ProfilePage(),
+          ),
+        );
       case AppRoutes.editProfile:
         return _page(const EditProfilePage());
+
+      case AppRoutes.notifications:
+        return _page(const NotificationPage());
 
       case AppRoutes.adminDashboard:
         return _page(const AdminDashboardPage());

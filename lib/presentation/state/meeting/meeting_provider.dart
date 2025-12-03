@@ -4,8 +4,9 @@ import '../../../data/services/meeting_service.dart';
 
 class MeetingProvider with ChangeNotifier {
   final MeetingService _meetingService = MeetingService();
-  List<Meeting> _fullMeetingList = []; // Store the original full list
-  List<Meeting> _meetings = []; // This will hold the filtered list
+  List<Meeting> _fullMeetingList = [];
+  List<Meeting> get fullMeetingList => _fullMeetingList; // Getter for the full list
+  List<Meeting> _meetings = [];
   List<Meeting> get meetings => _meetings;
 
   bool _isLoading = false;
@@ -14,6 +15,8 @@ class MeetingProvider with ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
+  bool isSearchActive = false; // To track search state
+
   Future<void> fetchMeetings() async {
     _isLoading = true;
     _errorMessage = null;
@@ -21,7 +24,8 @@ class MeetingProvider with ChangeNotifier {
 
     try {
       _fullMeetingList = await _meetingService.getMeetings();
-      _meetings = _fullMeetingList; // Initially, display all meetings
+      _meetings = _fullMeetingList;
+      isSearchActive = false; // Reset search state on fresh fetch
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
@@ -31,9 +35,6 @@ class MeetingProvider with ChangeNotifier {
   }
 
   void searchMeetings({String keyword = '', String category = '', String region = ''}) {
-    _isLoading = true;
-    notifyListeners();
-
     List<Meeting> filteredList = _fullMeetingList;
 
     if (keyword.isNotEmpty) {
@@ -59,7 +60,13 @@ class MeetingProvider with ChangeNotifier {
     }
 
     _meetings = filteredList;
-    _isLoading = false;
+    isSearchActive = true; // Activate search view
+    notifyListeners();
+  }
+
+  void clearSearch() {
+    _meetings = _fullMeetingList; // Restore the full list
+    isSearchActive = false; // Deactivate search view
     notifyListeners();
   }
 }
