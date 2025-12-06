@@ -23,47 +23,62 @@ void printSuccess(String msg) => stdout.writeln('✅ $msg');
 void printFail(String msg) => stdout.writeln('❌ $msg');
 
 Future<void> main() async {
-  print('\n🚀 LightningMeet 전체 통합 시나리오 시작');
+  print('\n🚀 LightningMeet 현실적인 시나리오 시작');
   print('--------------------------------------------');
 
-  // 🟩 User A 회원가입 + 로그인
-  printHeader('1️⃣ User A 회원가입 및 로그인');
-  await signup('userA', '1234', 'userA@example.com', '유저A');
-  final aAccess = await login('userA', '1234');
-  printSuccess('User A 로그인 완료');
+  // 🟩 User A (모임 주최자)
+  printHeader('1️⃣ 모임 주최자(운동매니아) 생성 및 로그인');
+  await signup('running_lover', '1234', 'runner@example.com', '운동매니아');
+  final runnerAccess = await login('running_lover', '1234');
+  printSuccess('운동매니아 로그인 완료');
 
-  // 🟦 User A 모임 생성
-  printHeader('2️⃣ User A 모임 생성');
-  final meetingId = await createMeeting(
-    token: aAccess,
-    title: 'Flutter 스터디',
-    content: '플러터 기초를 함께 학습하는 모임입니다.',
-    region: '서울',
-    maxParticipants: 5,
-    eventAt: '2025-11-12T18:00:00',
+  printHeader('2️⃣ 운동매니아, "주말 아침 테니스" 모임 생성');
+  final tennisMeetingId = await createMeeting(
+    token: runnerAccess,
+    title: '주말 아침 테니스 같이 치실 분! (초보 환영)',
+    content: '토요일 아침 9시에 서울숲 테니스장에서 같이 테니스 치실 분 구합니다. 실력은 상관없고, 즐겁게 운동하는 게 목적이에요. 라켓 없으시면 하나 빌려드릴 수 있습니다. 끝나고 근처에서 브런치 하실 분들은 같이 가요!',
+    region: '서울 성동구',
+    maxParticipants: 4,
+    eventAt: '2025-12-20T09:00:00',
   );
-  printSuccess('User A 모임 생성 완료 → ID=$meetingId');
+  printSuccess('테니스 모임 생성 완료 → ID=$tennisMeetingId');
 
-  // 🟨 User B 회원가입 + 로그인
-  printHeader('3️⃣ User B 회원가입 및 로그인');
-  await signup('userB', '1234', 'userB@example.com', '유저B');
-  final bAccess = await login('userB', '1234');
-  printSuccess('User B 로그인 완료');
+  // 🟦 User B (첫 번째 참가자)
+  printHeader('3️⃣ 첫 번째 참가자(코딩꿈나무) 생성 및 로그인');
+  await signup('coder_wannabe', '1234', 'coder@example.com', '코딩꿈나무');
+  final coderAccess = await login('coder_wannabe', '1234');
+  printSuccess('코딩꿈나무 로그인 완료');
 
-  // 🟧 User B 모임 참여
-  printHeader('4️⃣ User B 모임 참여');
-  await joinMeeting(token: bAccess, meetingId: meetingId);
-  printSuccess('User B 모임 참여 완료');
+  printHeader('4️⃣ 코딩꿈나무, "주말 아침 테니스" 모임 참여');
+  await joinMeeting(token: coderAccess, meetingId: tennisMeetingId);
+  printSuccess('코딩꿈나무, 테니스 모임 참여 완료');
 
-  // 🟥 User B 모임 탈퇴
-  printHeader('5️⃣ User B 모임 탈퇴');
-  await leaveMeeting(token: bAccess, meetingId: meetingId);
-  printSuccess('User B 모임 탈퇴 완료');
+  // 🟨 User C (두 번째 참가자)
+  printHeader('5️⃣ 두 번째 참가자(산책러버) 생성 및 로그인');
+  await signup('walking_lover', '1234', 'walker@example.com', '산책러버');
+  final walkerAccess = await login('walking_lover', '1234');
+  printSuccess('산책러버 로그인 완료');
 
-  // ⚫ User A 모임 삭제
-  printHeader('6️⃣ User A 모임 삭제');
-  await deleteMeeting(token: aAccess, meetingId: meetingId);
-  printSuccess('User A 모임 삭제 완료');
+  printHeader('6️⃣ 산책러버, "주말 아침 테니스" 모임 참여');
+  await joinMeeting(token: walkerAccess, meetingId: tennisMeetingId);
+  printSuccess('산책러버, 테니스 모임 참여 완료');
+
+  // 🟧 User D (다른 모임 주최자)
+  printHeader('7️⃣ 다른 모임 주최자(게으른천재) 생성 및 로그인');
+  await signup('lazy_genius', '1234', 'genius@example.com', '게으른천재');
+  final geniusAccess = await login('lazy_genius', '1234');
+  printSuccess('게으른천재 로그인 완료');
+
+  printHeader('8️⃣ 게으른천재, "코딩 스터디" 모임 생성');
+  final codingMeetingId = await createMeeting(
+    token: geniusAccess,
+    title: '강남역 카페에서 주말 코딩 스터디 하실 분',
+    content: '이번 주 일요일 오후 2시에 같이 모여서 코딩/사이드 프로젝트 하실 분 구합니다. 서로 동기부여도 하고, 막히는 부분 있으면 이야기도 나눠봐요. 자바, 코틀린, 스프링부트 하시는 분이면 더 좋습니다.',
+    region: '서울 강남구',
+    maxParticipants: 5,
+    eventAt: '2025-12-21T14:00:00',
+  );
+  printSuccess('코딩 스터디 모임 생성 완료 → ID=$codingMeetingId');
 
   print('\n🎉 모든 테스트 시나리오 성공적으로 완료!\n');
 }
