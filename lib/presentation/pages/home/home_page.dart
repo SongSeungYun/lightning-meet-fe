@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../config/app_colors.dart';
-import '../../../config/app_text_styles.dart';
 import '../../../config/constants.dart';
-import '../../widgets/meeting/meeting_card.dart';
 import '../../../config/app_routes.dart';
-import '../../state/meeting/meeting_provider.dart';
-import '../../state/profile/profile_provider.dart';
-import '../../state/my/my_participating_meetings_provider.dart';
-import '../../state/notification/notification_provider.dart';
-import '../../widgets/common/main_layout.dart';
-import '../../widgets/common/custom_text_field.dart';
-import '../../widgets/common/custom_button.dart';
 import '../../../data/models/meeting_model.dart';
+import '../../state/meeting/meeting_provider.dart';
+import '../../widgets/common/custom_button.dart';
+import '../../widgets/common/custom_text_field.dart';
+import '../../widgets/common/main_layout.dart';
+import '../../widgets/meeting/meeting_card.dart';
+
+extension on Widget {
+  SliverToBoxAdapter toSliver() => SliverToBoxAdapter(child: this);
+}
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -25,16 +24,24 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _categoryController = TextEditingController();
   final TextEditingController _regionController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
+    final meetingProvider = Provider.of<MeetingProvider>(context, listen: false);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Fetch all necessary data when the page initializes
-      Provider.of<MeetingProvider>(context, listen: false).fetchMeetings();
-      Provider.of<ProfileProvider>(context, listen: false).fetchUserProfile();
-      Provider.of<MyParticipatingMeetingsProvider>(context, listen: false).fetchMyParticipatingMeetings();
-      Provider.of<NotificationProvider>(context, listen: false).fetchNotifications();
+      meetingProvider.fetchInitialMeetings();
+    });
+
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
+        if (meetingProvider.hasMore && !meetingProvider.isLoadingMore) {
+          meetingProvider.fetchMoreMeetings();
+        }
+      }
     });
   }
 
@@ -43,6 +50,7 @@ class _HomePageState extends State<HomePage> {
     _searchController.dispose();
     _categoryController.dispose();
     _regionController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -57,49 +65,119 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return MainLayout(
-      body: Consumer4<MeetingProvider, ProfileProvider, MyParticipatingMeetingsProvider, NotificationProvider>(
-        builder: (context, meetingProvider, profileProvider, participatingProvider, notificationProvider, child) {
-          final searchAndFilterBar = _buildSearchAndFilterBar();
-
-          // Show a single loading indicator until all initial data is loaded
-          if (meetingProvider.isLoading || profileProvider.isLoading || participatingProvider.isLoading || notificationProvider.isLoading) {
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(AppConstants.pageHorizontalPadding),
-                  child: searchAndFilterBar,
-                ),
-                const Expanded(child: Center(child: CircularProgressIndicator())),
-              ],
-            );
-          }
-          // Show error if any provider has an error
-          if (meetingProvider.errorMessage != null) {
-            return Center(child: Text('모임 로딩 오류: ${meetingProvider.errorMessage}'));
-          }
-           if (profileProvider.errorMessage != null) {
-            return Center(child: Text('프로필 로딩 오류: ${profileProvider.errorMessage}'));
-          }
-           if (participatingProvider.errorMessage != null) {
-            return Center(child: Text('참여 모임 로딩 오류: ${participatingProvider.errorMessage}'));
-          }
-
+      body: Consumer<MeetingProvider>(
+        builder: (context, provider, child) {
           return Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 900),
-              child: ListView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppConstants.pageHorizontalPadding,
-                  vertical: 24,
+              child: RefreshIndicator(
+                onRefresh: () => provider.fetchInitialMeetings(), // Refresh both lists
+                child: CustomScrollView(
+                  controller: _scrollController,
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppConstants.pageHorizontalPadding,
+                          vertical: 24,
+                        ),
+                        child: _buildSearchAndFilterBar(),
+                      ),
+                    ),
+                    // Imminent Meetings Section
+                    SliverToBoxAdapter(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: AppConstants.pageHorizontalPadding),
+                            child: Text(
+                              '⏰ 마감 임박!',
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          if (provider.imminentMeetings.isNotEmpty)
+                            SizedBox(
+                              height: 200, // Fixed height for horizontal list
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                padding: const EdgeInsets.symmetric(horizontal: AppConstants.pageHorizontalPadding - 8), // Adjust padding for cards
+                                itemCount: provider.imminentMeetings.length,
+                                itemBuilder: (context, index) {
+                                  final meeting = provider.imminentMeetings[index];
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                    child: SizedBox(
+                                      width: 280, // Fixed width for each card
+                                      child: MeetingCard(
+                                        title: meeting.title,
+                                        location: meeting.location,
+                                        date: meeting.time,
+                                        currentCount: meeting.currentParticipants,
+                                        maxCount: meeting.maxParticipants,
+                                        onTap: () {
+                                          Navigator.pushNamed(context, AppRoutes.meetingDetail, arguments: meeting.id);
+                                        },
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            )
+                          else
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: AppConstants.pageHorizontalPadding),
+                              child: Text(
+                                '곧 마감인 모임이 없습니다.',
+                                style: Theme.of(context).textTheme.bodyLarge,
+                              ),
+                            ),
+                          const SizedBox(height: 24),
+                        ],
+                      ),
+                    ),
+                    
+                    // Title for All Meetings
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: AppConstants.pageHorizontalPadding),
+                        child: Text(
+                          '⚡️ 전체 번개 모임',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16).toSliver(), // Extension to make SizedBox a Sliver
+                    
+                    if (provider.isLoading && provider.meetings.isEmpty)
+                      const SliverFillRemaining(
+                        child: Center(child: CircularProgressIndicator()),
+                      )
+                    else if (provider.errorMessage != null && provider.meetings.isEmpty)
+                       SliverFillRemaining(
+                        child: Center(child: Text(provider.errorMessage!)),
+                      )
+                    else if (provider.meetings.isEmpty)
+                      const SliverFillRemaining(
+                        child: Center(child: Text('표시할 모임이 없습니다.')),
+                      )
+                    else
+                      _buildMeetingList(provider),
+                    
+                    if (provider.isLoadingMore)
+                      const SliverToBoxAdapter(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24.0),
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                      ),
+                  ],
                 ),
-                children: [
-                  searchAndFilterBar,
-                  const SizedBox(height: 32),
-                  if (meetingProvider.isSearchActive)
-                    _buildSearchResultsView(meetingProvider)
-                  else
-                    _buildInitialView(meetingProvider, profileProvider, participatingProvider),
-                ],
               ),
             ),
           );
@@ -148,117 +226,27 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildInitialView(MeetingProvider meetingProvider, ProfileProvider profileProvider, MyParticipatingMeetingsProvider participatingProvider) {
-    final fullList = meetingProvider.fullMeetingList;
-    final user = profileProvider.user;
-    final participatingMeetingIds = participatingProvider.meetings.map((m) => m.id).toSet();
-
-    final soonToCloseMeetings = fullList.where((m) {
-      return m.time.isAfter(DateTime.now()) && m.time.isBefore(DateTime.now().add(const Duration(hours: 3)));
-    }).toList();
-    
-    final recommendedMeetings = user != null ? fullList.where((m) {
-      final userRegion = user.region ?? '';
-      final userInterests = user.interests?.split(',') ?? [];
-      final meetingKeywords = m.keywords?.split(',') ?? [];
-      
-      bool regionMatch = userRegion.isNotEmpty && m.region == userRegion;
-      bool interestMatch = userInterests.any((interest) => meetingKeywords.contains(interest.trim()));
-      bool notParticipating = !participatingMeetingIds.contains(m.id);
-
-      return regionMatch && interestMatch && notParticipating;
-    }).toList() : <Meeting>[];
-
-    final allMeetingsInRegion = (user?.region != null && user!.region!.isNotEmpty) 
-      ? fullList.where((m) => m.region == user.region).toList() 
-      : <Meeting>[];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text("⏳ 곧 마감인 모임", style: AppTextStyles.titleMedium),
-        const SizedBox(height: 16),
-        if (soonToCloseMeetings.isNotEmpty)
-          ...soonToCloseMeetings.map((m) => MeetingCard(
-            title: m.title,
-            location: m.location,
-            date: m.time,
-            currentCount: m.currentParticipants,
-            maxCount: m.maxParticipants,
-            onTap: () {
-              Navigator.pushNamed(context, AppRoutes.meetingDetail, arguments: m.id);
-            },
-          ))
-        else
-          const Center(child: Padding(padding: EdgeInsets.all(16.0), child: Text('곧 마감되는 모임이 없습니다.'))),
-        const SizedBox(height: 32),
-
-        Text("🔥 추천 모임", style: AppTextStyles.titleMedium),
-        const SizedBox(height: 16),
-        if (recommendedMeetings.isNotEmpty)
-          ...recommendedMeetings.map((m) => MeetingCard(
-            title: m.title,
-            location: m.location,
-            date: m.time,
-            currentCount: m.currentParticipants,
-            maxCount: m.maxParticipants,
-            onTap: () {
-              Navigator.pushNamed(context, AppRoutes.meetingDetail, arguments: m.id);
-            },
-          ))
-        else
-          const Center(child: Padding(padding: EdgeInsets.all(16.0), child: Text('추천 모임이 없습니다. 관심사와 지역을 설정해보세요.'))),
-        const SizedBox(height: 32),
-
-        Text("🌐 전체 모임 (${user?.region ?? '지역 정보 로딩중...'})", style: AppTextStyles.titleMedium),
-        const SizedBox(height: 16),
-        if (allMeetingsInRegion.isNotEmpty)
-          ...allMeetingsInRegion.map((m) => MeetingCard(
-            title: m.title,
-            location: m.location,
-            date: m.time,
-            currentCount: m.currentParticipants,
-            maxCount: m.maxParticipants,
-            onTap: () {
-              Navigator.pushNamed(context, AppRoutes.meetingDetail, arguments: m.id);
-            },
-          ))
-        else
-          const Center(child: Padding(padding: EdgeInsets.all(16.0), child: Text('해당 지역의 모임이 없습니다.'))),
-      ],
-    );
-  }
-
-  Widget _buildSearchResultsView(MeetingProvider meetingProvider) {
-    final meetings = meetingProvider.meetings;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text("🔍 검색 결과 (${meetings.length}건)", style: AppTextStyles.titleMedium),
-            TextButton(
-              onPressed: () => context.read<MeetingProvider>().clearSearch(),
-              child: const Text('검색 초기화'),
-            )
-          ],
-        ),
-        const SizedBox(height: 16),
-        if (meetings.isNotEmpty)
-          ...meetings.map((m) => MeetingCard(
-            title: m.title,
-            location: m.location,
-            date: m.time,
-            currentCount: m.currentParticipants,
-            maxCount: m.maxParticipants,
-            onTap: () {
-              Navigator.pushNamed(context, AppRoutes.meetingDetail, arguments: m.id);
-            },
-          ))
-        else
-          const Center(child: Padding(padding: EdgeInsets.all(16.0), child: Text('검색 결과에 맞는 모임이 없습니다.'))),
-      ],
+  Widget _buildMeetingList(MeetingProvider provider) {
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          final meeting = provider.meetings[index];
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppConstants.pageHorizontalPadding, vertical: 8),
+            child: MeetingCard(
+              title: meeting.title,
+              location: meeting.location,
+              date: meeting.time,
+              currentCount: meeting.currentParticipants,
+              maxCount: meeting.maxParticipants,
+              onTap: () {
+                Navigator.pushNamed(context, AppRoutes.meetingDetail, arguments: meeting.id);
+              },
+            ),
+          );
+        },
+        childCount: provider.meetings.length,
+      ),
     );
   }
 }

@@ -114,7 +114,7 @@ class _MeetingEditPageState extends State<MeetingEditPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('모임이 성공적으로 수정되었습니다.')),
         );
-        Provider.of<MeetingProvider>(context, listen: false).fetchMeetings();
+        Provider.of<MeetingProvider>(context, listen: false).fetchInitialMeetings();
         Navigator.pop(context);
       }
     } catch (e) {

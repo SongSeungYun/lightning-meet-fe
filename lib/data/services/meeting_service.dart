@@ -1,18 +1,31 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:lightning_meet_fe/data/models/meeting_model.dart'; // Package import
+import 'package:lightning_meet_fe/data/models/meeting_model.dart';
+import 'package:lightning_meet_fe/data/models/page_response_model.dart';
 import 'auth_service.dart';
 import 'user_service.dart';
+import '../../config/constants.dart';
 
 class MeetingService {
-  final String _baseUrl = "http://localhost:8080/api";
+  final String _baseUrl = AppConstants.apiBaseUrl+'/api';
   final AuthService _authService = AuthService();
   final UserService _userService = UserService();
 
-  Future<List<Meeting>> getMeetings() async {
+  Future<PageResponse<Meeting>> getMeetings({int page = 0, int size = 10, String? region}) async {
     final token = await _authService.getToken();
+    
+    final Map<String, String> queryParams = {
+      'page': page.toString(),
+      'size': size.toString(),
+    };
+    if (region != null && region.isNotEmpty) {
+      queryParams['region'] = region;
+    }
+
+    final uri = Uri.parse('$_baseUrl/meetings').replace(queryParameters: queryParams);
+    
     final response = await http.get(
-      Uri.parse('$_baseUrl/meetings'),
+      uri,
       headers: {
         'Content-Type': 'application/json',
         if (token != null) 'Authorization': 'Bearer $token',
@@ -21,8 +34,7 @@ class MeetingService {
 
     if (response.statusCode == 200) {
       final body = json.decode(utf8.decode(response.bodyBytes));
-      final List<dynamic> data = body['data'];
-      return data.map((json) => Meeting.fromJson(json)).toList();
+      return PageResponse.fromJson(body['data'], (json) => Meeting.fromJson(json as Map<String, dynamic>));
     } else {
       throw Exception('Failed to load meetings');
     }
@@ -79,6 +91,29 @@ class MeetingService {
 
     if (response.statusCode != 200) {
       throw Exception('Failed to create meeting');
+    }
+  }
+
+  Future<List<Meeting>> getImminentMeetings() async {
+    final token = await _authService.getToken();
+    if (token == null) {
+      throw Exception('Authentication required to get imminent meetings.');
+    }
+
+    final response = await http.get(
+      Uri.parse('$_baseUrl/meetings/imminent'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final body = json.decode(utf8.decode(response.bodyBytes));
+      final List<dynamic> data = body['data']; // The backend returns a List in the 'data' field for this endpoint
+      return data.map((json) => Meeting.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load imminent meetings');
     }
   }
 
@@ -159,12 +194,13 @@ class MeetingService {
   }
 
   Future<List<Meeting>> getMyCreatedMeetings() async {
-    final user = await _userService.getMe(); // Get current user
+    final user = await _userService.getMe();
     if (user == null) {
       throw Exception('User not logged in or profile not found.');
     }
-    final allMeetings = await getMeetings(); // Get all meetings
-    return allMeetings.where((meeting) => meeting.hostId == user.id).toList(); // Filter
+    // This is inefficient and should be a dedicated backend endpoint
+    final pageResponse = await getMeetings(size: 100); // Get a large number of meetings
+    return pageResponse.content.where((meeting) => meeting.hostId == user.id).toList();
   }
 
   Future<List<Meeting>> getMyParticipatingMeetings() async {

@@ -1,9 +1,10 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../../config/constants.dart';
 
 class AuthService {
-  final String _baseUrl = "http://localhost:8080/api/auth";
+  final String _baseUrl = AppConstants.apiBaseUrl+'/api/auth';
   final _storage = const FlutterSecureStorage();
 
   Future<void> signup({ required String loginId, required String password, required String email, required String nickname }) async {

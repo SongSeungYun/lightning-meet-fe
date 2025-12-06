@@ -2,9 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:lightning_meet_fe/data/models/notification_model.dart';
 import 'auth_service.dart';
+import '../../config/constants.dart';
 
 class NotificationService {
-  final String _baseUrl = "http://10.0.2.2:8080/api";
+  final String _baseUrl = AppConstants.apiBaseUrl+'/api';
   final AuthService _authService = AuthService();
 
   Future<List<NotificationModel>> getNotifications() async {

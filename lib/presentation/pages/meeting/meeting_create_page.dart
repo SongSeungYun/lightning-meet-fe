@@ -92,7 +92,7 @@ class _MeetingCreatePageState extends State<MeetingCreatePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('모임이 성공적으로 생성되었습니다.')),
         );
-        Provider.of<MeetingProvider>(context, listen: false).fetchMeetings();
+        Provider.of<MeetingProvider>(context, listen: false).fetchInitialMeetings();
         Navigator.pushReplacementNamed(context, AppRoutes.myMeetings);
       }
     } catch (e) {
